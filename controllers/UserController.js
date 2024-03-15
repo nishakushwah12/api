@@ -205,56 +205,30 @@ class UserController {
         }
     }
    
-    // static getuserdetails = async(req, res)=>{
-    //     try {
-            
-    //         //console.log(req.body);
-    //         const { name, id , email } = req.body
-    //         // const {id}= req.user
 
-    //               const  user= await UserModel.findById( req.user.id)
-
-
-    //              // console.log(user);
-
-    //                       res.status(201)
-    //                       .json({
-    //                         status: "success",
-    //                          message: "successfull",
-    //                           user, 
-              
-    //                       })
-    //                      res.send('hello user')
-
-    //     } catch (error) {
-    //         console.log(error);
-            
-    //     }
-    // }
-
-
-    static getuserdetails = async(req, res) =>{
+  
+    static getuserdetails = async(req,res)=>{
         try {
-
-          const { name, id, iemail } = req.user
-
-          const user = await UserModel.findById(req.user.id)
-
-         // console.log(user);
-                         res.status(201)
-                         .json({
-                          status: "success",
-                           message: "successfull",
-                           user, 
-                   
-                          })
-                        res.send('hello user')
+            const { name, email, id}= req.data1
             
+            const user = await UserModel.findById(req.data1.id)
+           
+            res.status(201)
+                .json({status:'success',
+                 message:'user details  insert successfully 😄😄',
+                 user,
+        
+                 })
+                 res.send(' hello user')
+
         } catch (error) {
             console.log(error);
             
         }
     }
+
+
+  
 
 
     static getsingleuser = async(req, res) =>{

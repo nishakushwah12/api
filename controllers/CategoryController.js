@@ -45,7 +45,7 @@ class CategoryController{
 
     try {
         const category = await CategoryModel.find()
-        console.log(category);
+       // console.log(category);
         res.status(201)
     .json({
         status:'success', 
