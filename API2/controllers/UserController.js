@@ -16,7 +16,12 @@ class UserController {
 
     static getalluser = async (req, res) => {
         try {
-            res.send('hello user')
+            // res.send('hello user')
+            const data = await UserModel.find()
+            res.status(200).json({
+                success: true,
+                data
+            })
         } catch (error) {
             console.log(error);
         }
@@ -143,42 +148,117 @@ class UserController {
             console.log(err)
         }
     }
-    static updatePassword = async (req, res) => {
-    //     // console.log(req.user)
-    //     try {
-    //         const { oldPassword, newPassword, confirmPassword } = req.body
 
-    //         if (oldPassword && newPassword && confirmPassword) {
-    //             const user = await UserModel.findById(req.user.id);
-    //             const isMatch = await bcrypt.compare(oldPassword, user.password)
-    //             //const isPasswordMatched = await userModel.comparePassword(req.body.oldPassword);
-    //             if (!isMatch) {
-    //                 res.status(201).json({ "status": 400, "message": "Old password is incorrect" })
-    //             } else {
-    //                 if (newPassword !== confirmPassword) {
-    //                     res.status(201)
-    //                         .json({ "status": "failed", "message": "password does not match" })
-    //                 } else {
-    //                     const salt = await bcrypt.genSalt(10)
-    //                     const newHashPassword = await bcrypt.hash(newPassword, salt)
-    //                     //console.log(req.user)
-    //                     await UserModel.findByIdAndUpdate(req.user.id, { $set: { password: newHashPassword } })
-    //                     res.status(201)
-    //                         .json({ "status": "success", "message": "Password changed succesfully" })
-    //                 }
-    //             }
-    //         } else {
-    //             res.status(201)
-    //                 .json({ "status": "failed", "message": "All Fields are Required" })
-    //         }
-    //     } catch (err) {
-    //         res.status(201)
-    //             .json(err)
-    //     }
+
+    static updatePassword = async (req, res) => {
+        // console.log(req.user)
+        try {
+            const { oldPassword, newPassword, confirmPassword } = req.body
+
+            if (oldPassword && newPassword && confirmPassword) {
+                const user = await UserModel.findById(req.user.id);
+                const isMatch = await bcrypt.compare(oldPassword, user.password)
+                //const isPasswordMatched = await userModel.comparePassword(req.body.oldPassword);
+                if (!isMatch) {
+                    res.status(201).json({ "status": 400, "message": "Old password is incorrect" })
+                } else {
+                    if (newPassword !== confirmPassword) {
+                        res.status(201)
+                            .json({ "status": "failed", "message": "password does not match" })
+                    } else {
+                        const salt = await bcrypt.genSalt(10)
+                        const newHashPassword = await bcrypt.hash(newPassword, salt)
+                        //console.log(req.user)
+                        await UserModel.findByIdAndUpdate(req.user.id, { $set: { password: newHashPassword } })
+                        res.status(201)
+                            .json({ "status": "success", "message": "Password changed succesfully" })
+                    }
+                }
+            } else {
+                res.status(201)
+                    .json({ "status": "failed", "message": "All Fields are Required" })
+            }
+        } catch (err) {
+            res.status(201)
+                .json(err)
+        }
      }
     
+static getSingleUser = async (req, res) => {
+        try {
+            const data = await UserModel.findById(req.params.id)
+            res.status(200).json({
+                success: true,
+                data
+            })
+        } catch (err) {
+            console.log(err)
+        }
+    }
+    static updateProfile = async (req, res) => {
+        try {
+            //console.log(req.body)
+            if (req.file) {
+                const user = await UserModel.findById(req.user.id);
+                const image_id = user.image.public_id;
+                await cloudinary.uploader.destroy(image_id);
 
+                const file = req.files.image;
+                const myimage = await cloudinary.uploader.upload(file.tempFilePath, {
+                    folder: "'profileimageapi'",
+                    width: 150,
+                });
+                var data = {
+                    name: req.body.name,
+                    email: req.body.email,
+                    image: {
+                        public_id: myimage.public_id,
+                        url: myimage.secure_url,
+                    },
+                };
+            } else {
+                var data = {
+                    name: req.body.name,
+                    email: req.body.email,
+                };
+            }
 
+            const updateuserprofile = await UserModel.findByIdAndUpdate(
+                req.user.id,
+                data
+            );
+            res.status(200).json({
+                success: true,
+                updateuserprofile,
+            });
+        } catch (error) {
+            console.log(error);
+        }
+    };
+
+    static getUserDetail = async (req, res) => {
+        try {
+            //   console.log(req.user);
+            const user = await UserModel.findById(req.user.id);
+
+            res.status(200).json({
+                success: true,
+                user,
+            });
+        } catch (error) {
+            console.log(error);
+        }
+    };
+    static deleteUser = async (req, res) => {
+        try {
+            const data = await UserModel.findByIdAndDelete(req.params.id)
+            res
+                .status(200)
+                .json({ status: "success", message: "User deleted successfully 😃🍻" });
+        } catch (err) {
+            console.log(err)
+        }
+    }
 
     static logout = async (req, res) => {
         
