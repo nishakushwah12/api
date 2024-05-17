@@ -17,29 +17,20 @@ class UserController {
             console.log(error);
 
         }
+  
     }
-    static bloguser = async (req, res) => {
-        try {
-            res.send('hello block')
-
-        } catch (error) {
-            console.log(error);
-
-        }
-    }
-
     static userinsert = async (req, res) => {
         try {
             //console.log(req.files.image);
             const file = req.files.image
             const imageUpload = await cloudinary.uploader.upload(file.tempFilePath, {
-                folder: 'profileimagapi'
+                folder: 'profileimageapi'
             })
 
             //console.log(imageUpload)
 
 
-          //  console.log(req.body)
+            //console.log(req.body)
 
             const { n, e, p, cp } = req.body
 
@@ -47,9 +38,10 @@ class UserController {
             // console.log(User);
             if (User) {
                 res
-                    .status(401)
-                    .json({ satus: "faild", message: "THIS EMAIL IS ALREADY EXSIT 😌😌" });
+                .status(401)
+                .json({status:"failed", message:"THIS EMAIL ALREADY EXIT😌😌"})
             }
+            
             else {
                 if (n && e && p && cp) {
                     if (p == cp) {
@@ -65,19 +57,28 @@ class UserController {
                             }
 
                         })
-                        await result.save()
-                        res
-                            .status(201)
-                            .json({ satus: "success", message: "Registration Successfully 😄😄" });
+                        const userData = await result.save()
+                        if (userData) {
+                            const token = jwt.sign({ ID: userData._id }, 'nisha@12345');
+                            // console.log(token);
+                            res.cookie('token', token)
+                            this.sendVerifyMail(n, e, userData._id)
+                            req.flash('success', 'Your Registraion has beeb successfullly.please Login')
 
-                        res.redirect('/')
+                            res.redirect('/register')
+
+                        } else {
+                            req.flash('error', 'Not a Verifyed User.')
+                            res.redirect('/register')
+
+                        }
+                        // req.flash('success', 'Register successfully please login')
+                        // res.redirect('/')
 
                     }
                     else {
-                        res
-                            .status(401)
-                            .json({ satus: "faild", message: "PASSWORD AND CONFIRM PASSWORD DOES NT MATCH 😌😌" });
-
+                        req.flash('error', 'password and confirm password does not match')
+                        res.redirect('/register')
 
 
                     }
@@ -85,12 +86,13 @@ class UserController {
                 }
                 else {
                     res
-                        .status(401)
-                        .json({ satus: "faild", message: "ALL FIELD REQUIRE 😌😌" });
-
+                .status(401)
+                .json({status:"failed", message:"ALL FEILD ARE😌😌"})
+            }
 
                 }
-            }
+            
+                
 
 
         } catch (error) {
@@ -100,207 +102,7 @@ class UserController {
 
 
     }
-    static verifylogin = async (req, res) => {
-        try {
-            //console.log(req.body)
-            const { email, password } = req.body
-            if (email && password) {
-                const user = await UserModel.findOne({ email: email })
-                //console.log(user)
-                if (user != null) {
-
-                    const ismatch = await bcrypt.compare(password, user.password)
-                    if (ismatch) {
-                        // console.log(user.role)
-                        if (user.role == 'admin') {
-                            const token = jwt.sign({ ID: user._id }, 'nisha@12345');
-                            //console.log(token);
-                            res.cookie('token', token)
-                            res.redirect('/admin/dashboard')
-
-                        }
-                        if (user.role == 'user') {
-                            const token = jwt.sign({ ID: user._id }, 'nisha@12345');
-                            //console.log(token);
-                            res.cookie('token', token)
-                            res.redirect('/dashboard')
-
-                        }
-
-                    }
-                    else {
-                        res
-                            .status(401)
-                            .json({ satus: "faild", message: "EMAIL & PASSWORD DOES NOT MATCHES 😌😌" });
-                    }
-                }
-                else {
-
-                    res
-                        .status(401)
-                        .json({ satus: "faild", message: "YOUR ARE NOT RAGISTERED USER 😌😌" });
-                }
-            }
-            else {
-
-                res
-                    .status(201)
-                    .json({ satus: "success", message: "ALL FEILD ARE REQUIRED 😌😌" });
-            }
-        } catch (error) {
-
-        }
-
-
-
-    }
-    static changepassword = async (req, res) => {
-        try {
-            //  console.log(req.body)
-            const { OldPassword, NewPassword, ConfirmPassword } = req.body
-            // const { id } = req.user
-            if (OldPassword && NewPassword && ConfirmPassword) {
-                const user = await UserModel.findById(id)
-                const ismatch = await bcrypt.compare(OldPassword, user.password)
-
-                if (!ismatch) {
-                    res
-                        .status(401)
-                        .json({ satus: "faild", message: "CURRENT PASSWORD DOES NOT MATCH 😌😌" });
-
-
-                } else {
-                    if (NewPassword != ConfirmPassword) {
-
-                        res
-                            .status(401)
-                            .json({ satus: "faild", message: "password does not match😌😌" });
-
-                    } else {
-
-                        const newHashPassword = await bcrypt.hash(NewPassword, 10)
-                        await UserModel.findByIdAndUpdate(id, {
-                            password: newHashPassword
-                        })
-                      
-                        res
-                            .status(201)
-                            .json({ satus: "success", message: "PASSWORD UPDATE SUCCESSFULLY  😄😄" });
-
-
-                    }
-                }
-
-            } else {
-
-                res
-                    .status(401)
-                    .json({ satus: "faild", message: "ALL FEILD REQUIRE  😄😄" });
-
-
-            }
-        } catch (error) {
-            console.log(error);
-
-        }
-    }
-   
-
   
-    static getuserdetails = async(req,res)=>{
-        try {
-            const { name, email, id}= req.data1
-            
-            const user = await UserModel.findById(req.data1.id)
-           
-            res.status(201)
-                .json({status:'success',
-                 message:'user details  insert successfully 😄😄',
-                 user,
-        
-                 })
-                 res.send(' hello user')
-
-        } catch (error) {
-            console.log(error);
-            
-        }
-    }
-
-
-  
-
-
-    static getsingleuser = async(req, res) =>{
-        try {
-            
-            const user = await UserModel.findById(req.params.id)
-            res.satus (200).json({
-                success: true,
-                user,
-            })
-
-            // console.log(req.body);
-        } catch (error) {
-            console.log(error);
-            
-        }
-    }
-    
-static updateprofile= async(req, res)=>{
-    try {
-
-        // console.log(req.body);
-        // console.log(req.files.image)
-        const { name, email, image } = req.body
-        if (req.files) {
-            const userImg = await UserModel.findById(req.user.id)
-
-            const imgId = userImg.image.public_id
-            await cloudinary.uploader.destroy(imgId)//for delete image
-            const file = req.files.image;
-            const imageUpload = await cloudinary.uploader.upload(file.tempFilePath, {
-                folder: 'profileimageapi'
-
-            });
-            console.log(imageUpload);
-            var data = {
-                name: name,
-                email: email,
-                image: {
-                    public_id: imageUpload.public_id,
-                    url: imageUpload.secure_url
-                }
-
-            }
-            // console.log(imgId);
-            //  console.log(userImg);
-
-
-        } else {
-            var data = {
-                name: name,
-                email: email,
-            }
-
-        }
-        await UserModel.findByIdAndUpdate(req.user.id, data)
-        res
-        .status(201)
-        .json({ satus: "success", message: "Registration Successfully 😄😄" });
-
-        
-        res.redirect('/profile')
-    } catch (error) {
-        console.log(error);
-
-    }
-
-    
-}
-   
-
-
     static logout = async (req, res) => {
         try {
 

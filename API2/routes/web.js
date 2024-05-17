@@ -1,4 +1,4 @@
-const express = require('express')
+const express = require('express');
 const UserController = require('../controllers/UserController')
 const { ChangeUserAuth } = require('../middleware/auth')
  const CategoryController = require('../controllers/CategoryController')
